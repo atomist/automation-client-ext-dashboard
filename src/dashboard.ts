@@ -129,8 +129,8 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
             });
 
             const msg: Notification = {
-                key: options ? options.id : guid(),
-                ts: options ? options.ts : Date.now(),
+                key: options && options.id ? options.id : guid(),
+                ts: options && options.ts ? options.ts : Date.now(),
                 ttl: options ? options.ttl : undefined,
                 post: options ? options.post : undefined,
                 body: typeof message === "string" ? message : JSON.stringify(message),
