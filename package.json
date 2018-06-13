@@ -20,7 +20,7 @@
     "lodash": "^4.17.10"
   },
   "peerDependencies": {
-    "@atomist/automation-client": "^0.17.0"
+    "@atomist/automation-client": ">=0.17.0"
   },
   "devDependencies": {
     "@atomist/automation-client": "0.17.2-20180611215142",
