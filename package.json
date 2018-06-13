@@ -17,10 +17,13 @@
     "url": "https://github.com/atomist/automation-client-ext-dashboard/issues"
   },
   "dependencies": {
-    "@atomist/automation-client": "https://r.atomist.com/S1EGATByxm",
     "lodash": "^4.17.10"
   },
+  "peerDependencies": {
+    "@atomist/automation-client": "^0.17.0"
+  },
   "devDependencies": {
+    "@atomist/automation-client": "0.17.2-20180611215142",
     "@types/lodash": "^4.14.108",
     "@types/mocha": "^2.2.48",
     "@types/node": "^9.4.1",
