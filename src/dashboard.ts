@@ -179,7 +179,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     }
                 });
 
-                const messages: Promise<void>[] = [];
+                const messages: Array<Promise<void>> = [];
 
                 if (channel) {
                     messages.push(ctx.messageClient.send(msg, addressEvent(NotificationRootType)));
