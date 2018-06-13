@@ -109,18 +109,20 @@ const LoginQuery = `query ChatIdByScreenName($teamId: ID, $screenName: String!) 
 
 export class DashboardAutomationEventListener extends AutomationEventListenerSupport {
 
-    public async messageSent(message: any,
-                             destinations: Destination | Destination[],
-                             options: MessageOptions,
-                             ctx: HandlerContext) {
+    public messageSent(message: any,
+                       destinations: Destination | Destination[],
+                       options: MessageOptions,
+                       ctx: HandlerContext): Promise<void> {
+        let ignore = false;
 
-        const ignore = options &&
-            ((options.id && options.id.includes("lifecycle"))
-                || (options as any).dashboard === false);
+        if (options) {
+            ignore = (options.id && options.id.includes("lifecycle"))
+                || (options as any).dashboard === false;
+        }
 
         if (isSlackMessage(message) && !ignore) {
 
-            const actions: NotifactionAction[] = _.flatten<Action>(message.attachments.map(a => a.actions))
+            const actions: NotifactionAction[] = _.flatten<Action>((message.attachments || []).map(a => a.actions))
                 .filter(a => a).map(a => {
                 const cra = a as any as CommandReferencingAction;
 
@@ -156,7 +158,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
 
             if (!destinations || (destinations as Destination[]).length === 0) {
                 // Response message
-                await ctx.messageClient.send(msg, addressEvent(NotificationRootType));
+                return ctx.messageClient.send(msg, addressEvent(NotificationRootType));
             } else {
                 // Addressed message
                 // channel-addressed will be send as workspace Notification
@@ -177,31 +179,39 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     }
                 });
 
+                const messages: Promise<void>[] = [];
+
                 if (channel) {
-                    await ctx.messageClient.send(msg, addressEvent(NotificationRootType));
+                    messages.push(ctx.messageClient.send(msg, addressEvent(NotificationRootType)));
                 }
 
                 if (users.length > 0) {
-                    for (const user of _.uniq(users)) {
+                    messages.push(..._.uniq(users).map(user => {
 
                         // We have the screenName but need the GitHub login
-                        const chatId = await ctx.graphClient.query({
-                            query: LoginQuery,
-                            variables: {
-                                teamId: user.teamId,
-                                screenName: user.screenName,
-                            },
-                        });
-
-                        const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
-                        if (login) {
-                            await ctx.messageClient.send({
-                                ..._.cloneDeep(msg) as Notification,
-                                login,
-                            }, addressEvent(UserNotificationRootType));
-                        }
-                    }
+                        return ctx.graphClient.query({
+                                query: LoginQuery,
+                                variables: {
+                                    teamId: user.teamId,
+                                    screenName: user.screenName,
+                                },
+                            })
+                            .then(chatId => {
+                                const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
+                                if (login) {
+                                    return ctx.messageClient.send({
+                                        ..._.cloneDeep(msg) as Notification,
+                                        login,
+                                    }, addressEvent(UserNotificationRootType));
+                                } else {
+                                    return Promise.resolve();
+                                }
+                            });
+                    }));
                 }
+
+                return Promise.all(messages)
+                    .then(() => Promise.resolve());
             }
         }
         return Promise.resolve();
@@ -214,7 +224,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
  * @param {Configuration} configuration
  * @returns {Promise<Configuration>}
  */
-export async function configureDashboardNotifications(configuration: Configuration): Promise<Configuration> {
+export function configureDashboardNotifications(configuration: Configuration): Promise<Configuration> {
     configuration.listeners.push(new DashboardAutomationEventListener());
-    return configuration;
+    return Promise.resolve(configuration);
 }
