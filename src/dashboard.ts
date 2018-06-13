@@ -204,6 +204,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                 }
             }
         }
+        return Promise.resolve();
     }
 }
 
