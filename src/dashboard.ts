@@ -30,8 +30,8 @@ import {
     SlackDestination,
 } from "@atomist/automation-client/spi/message/MessageClient";
 import { Action } from "@atomist/slack-messages";
-import * as _ from "lodash";
 import * as cluster from "cluster";
+import * as _ from "lodash";
 
 /**
  * Root-type for the workspace-wide notifications
@@ -211,7 +211,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                         }
                     });
 
-                    const messages: Promise<void>[] = [];
+                    const messages: Array<Promise<void>> = [];
 
                     if (channel) {
                         messages.push(ctx.messageClient.send(msg, addressEvent(NotificationRootType)));
