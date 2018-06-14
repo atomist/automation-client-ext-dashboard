@@ -31,6 +31,7 @@ import {
 } from "@atomist/automation-client/spi/message/MessageClient";
 import { Action } from "@atomist/slack-messages";
 import * as _ from "lodash";
+import * as cluster from "cluster";
 
 /**
  * Root-type for the workspace-wide notifications
@@ -109,93 +110,73 @@ const LoginQuery = `query ChatIdByScreenName($teamId: ID, $screenName: String!) 
 
 export class DashboardAutomationEventListener extends AutomationEventListenerSupport {
 
+    constructor(private readonly clustered: boolean) {
+        super();
+    }
+
     public messageSent(message: any,
                        destinations: Destination | Destination[],
                        options: MessageOptions,
                        ctx: HandlerContext): Promise<void> {
-        let ignore = false;
+        // Only the master process should send these notifications
+        if ((this.clustered && cluster.isWorker) || !this.clustered) {
+            let ignore = false;
+            if (options) {
+                ignore = (options.id && options.id.includes("lifecycle"))
+                    || (options as any).dashboard === false;
+            }
 
-        if (options) {
-            ignore = (options.id && options.id.includes("lifecycle"))
-                || (options as any).dashboard === false;
-        }
+            if (isSlackMessage(message) && !ignore) {
 
-        if (isSlackMessage(message) && !ignore) {
+                const actions: NotifactionAction[] = _.flatten<Action>((message.attachments || []).map(a => a.actions))
+                    .filter(a => a).map(a => {
+                        const cra = a as any as CommandReferencingAction;
 
-            const actions: NotifactionAction[] = _.flatten<Action>((message.attachments || []).map(a => a.actions))
-                .filter(a => a).map(a => {
-                const cra = a as any as CommandReferencingAction;
+                        const parameters = [];
+                        for (const key in cra.command.parameters) {
+                            if (cra.command.parameters.hasOwnProperty(key)) {
+                                parameters.push({
+                                    name: key,
+                                    value: cra.command.parameters[ key ] ? cra.command.parameters[ key ].toString() : undefined,
+                                });
+                            }
+                        }
 
-                const parameters = [];
-                for (const key in cra.command.parameters) {
-                    if (cra.command.parameters.hasOwnProperty(key)) {
-                        parameters.push({
-                            name: key,
-                            value: cra.command.parameters[key] ? cra.command.parameters[key].toString() : undefined,
-                        });
-                    }
-                }
+                        const action: NotifactionAction = {
+                            text: cra.text,
+                            type: "button",
+                            registration: (ctx as any as AutomationContextAware).context.name,
+                            command: cra.command.name,
+                            parameters,
+                        };
+                        return action;
+                    });
 
-                const action: NotifactionAction = {
-                    text: cra.text,
-                    type: "button",
-                    registration: (ctx as any as AutomationContextAware).context.name,
-                    command: cra.command.name,
-                    parameters,
+                const msg: Notification = {
+                    key: options && options.id ? options.id : guid(),
+                    ts: options && options.ts ? options.ts : Date.now(),
+                    ttl: options ? options.ttl : undefined,
+                    post: options ? options.post : undefined,
+                    body: typeof message === "string" ? message : JSON.stringify(message),
+                    contentType: typeof message === "string" ? "text/plain" : "application/x-atomist-slack+json",
+                    actions,
                 };
-                return action;
-            });
 
-            const msg: Notification = {
-                key: options && options.id ? options.id : guid(),
-                ts: options && options.ts ? options.ts : Date.now(),
-                ttl: options ? options.ttl : undefined,
-                post: options ? options.post : undefined,
-                body: typeof message === "string" ? message : JSON.stringify(message),
-                contentType: typeof message === "string" ? "text/plain" : "application/x-atomist-slack+json",
-                actions,
-            };
-
-            if (!destinations || (destinations as Destination[]).length === 0) {
-                // Response message
-                return ctx.messageClient.send(msg, addressEvent(NotificationRootType));
-            } else {
-                // Addressed message
-                // channel-addressed will be send as workspace Notification
-                // user-addressed will be send as UserNotification in the workspace
-
-                const users: Array<{teamId: string, screenName: string}> = [];
-                let channel: boolean = false;
-
-                const dest = Array.isArray(destinations) ? destinations : [destinations];
-
-                dest.forEach(d => {
-                    const sd = d as SlackDestination;
-                    if (sd.channels && sd.channels.length > 0) {
-                        channel = true;
-                    }
-                    if (sd.users) {
-                        users.push(...sd.users.map(u => ({ teamId: sd.team, screenName: u})));
-                    }
-                });
-
-                const messages: Array<Promise<void>> = [];
-
-                if (channel) {
-                    messages.push(ctx.messageClient.send(msg, addressEvent(NotificationRootType)));
-                }
-
-                if (users.length > 0) {
-                    messages.push(..._.uniq(users).map(user => {
-
-                        // We have the screenName but need the GitHub login
+                if (!destinations || (destinations as Destination[]).length === 0) {
+                    // Response message
+                    if (ctx.source.user_agent as any === "web") {
+                        return ctx.messageClient.send({
+                            ..._.cloneDeep(msg) as Notification,
+                            login: (ctx.source as any).web.login,
+                        }, addressEvent(UserNotificationRootType));
+                    } else if (ctx.source.user_agent === "slack") {
                         return ctx.graphClient.query({
-                                query: LoginQuery,
-                                variables: {
-                                    teamId: user.teamId,
-                                    screenName: user.screenName,
-                                },
-                            })
+                            query: LoginQuery,
+                            variables: {
+                                teamId: ctx.source.slack.team.id,
+                                screenName: (ctx.source.slack.user as any).name,
+                            },
+                        })
                             .then(chatId => {
                                 const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
                                 if (login) {
@@ -207,11 +188,63 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                     return Promise.resolve();
                                 }
                             });
-                    }));
-                }
+                    } else {
+                        return ctx.messageClient.send(msg, addressEvent(NotificationRootType));
+                    }
+                } else {
+                    // Addressed message
+                    // channel-addressed will be send as workspace Notification
+                    // user-addressed will be send as UserNotification in the workspace
 
-                return Promise.all(messages)
-                    .then(() => Promise.resolve());
+                    const users: Array<{ teamId: string, screenName: string }> = [];
+                    let channel: boolean = false;
+
+                    const dest = Array.isArray(destinations) ? destinations : [ destinations ];
+
+                    dest.forEach(d => {
+                        const sd = d as SlackDestination;
+                        if (sd.channels && sd.channels.length > 0) {
+                            channel = true;
+                        }
+                        if (sd.users) {
+                            users.push(...sd.users.map(u => ({ teamId: sd.team, screenName: u })));
+                        }
+                    });
+
+                    const messages: Promise<void>[] = [];
+
+                    if (channel) {
+                        messages.push(ctx.messageClient.send(msg, addressEvent(NotificationRootType)));
+                    }
+
+                    if (users.length > 0) {
+                        messages.push(..._.uniq(users).map(user => {
+
+                            // We have the screenName but need the GitHub login
+                            return ctx.graphClient.query({
+                                query: LoginQuery,
+                                variables: {
+                                    teamId: user.teamId,
+                                    screenName: user.screenName,
+                                },
+                            })
+                                .then(chatId => {
+                                    const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
+                                    if (login) {
+                                        return ctx.messageClient.send({
+                                            ..._.cloneDeep(msg) as Notification,
+                                            login,
+                                        }, addressEvent(UserNotificationRootType));
+                                    } else {
+                                        return Promise.resolve();
+                                    }
+                                });
+                        }));
+                    }
+
+                    return Promise.all(messages)
+                        .then(() => Promise.resolve());
+                }
             }
         }
         return Promise.resolve();
@@ -225,6 +258,6 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
  * @returns {Promise<Configuration>}
  */
 export function configureDashboardNotifications(configuration: Configuration): Promise<Configuration> {
-    configuration.listeners.push(new DashboardAutomationEventListener());
+    configuration.listeners.push(new DashboardAutomationEventListener(configuration.cluster.enabled));
     return Promise.resolve(configuration);
 }
