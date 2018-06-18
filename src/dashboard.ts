@@ -28,8 +28,12 @@ import {
     isSlackMessage,
     MessageOptions,
     SlackDestination,
+    SlackMessageClient,
 } from "@atomist/automation-client/spi/message/MessageClient";
-import { Action } from "@atomist/slack-messages";
+import {
+    Action,
+    SlackMessage,
+} from "@atomist/slack-messages";
 import * as cluster from "cluster";
 import * as _ from "lodash";
 
@@ -126,9 +130,20 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     || (options as any).dashboard === false;
             }
 
-            if (isSlackMessage(message) && !ignore) {
+            let slackMessage: SlackMessage;
 
-                const actions: NotifactionAction[] = _.flatten<Action>((message.attachments || []).map(a => a.actions))
+            // If a string message is being sent, wrap it in a SlackMessage
+            if (typeof message === "string") {
+                slackMessage = {
+                    text: message,
+                };
+            } else if (isSlackMessage(message)) {
+                slackMessage = message;
+            }
+
+            if (slackMessage && !ignore) {
+
+                const actions: NotifactionAction[] = _.flatten<Action>((slackMessage.attachments || []).map(a => a.actions))
                     .filter(a => a).map(a => {
                         const cra = a as any as CommandReferencingAction;
 
@@ -157,8 +172,8 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     ts: options && options.ts ? options.ts : Date.now(),
                     ttl: options ? options.ttl : undefined,
                     post: options ? options.post : undefined,
-                    body: typeof message === "string" ? message : JSON.stringify(message),
-                    contentType: typeof message === "string" ? "text/plain" : "application/x-atomist-slack+json",
+                    body: JSON.stringify(slackMessage),
+                    contentType: "application/x-atomist-slack+json",
                     actions,
                 };
 
@@ -177,17 +192,17 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                 screenName: (ctx.source.slack.user as any).name,
                             },
                         })
-                            .then(chatId => {
-                                const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
-                                if (login) {
-                                    return ctx.messageClient.send({
-                                        ..._.cloneDeep(msg) as Notification,
-                                        login,
-                                    }, addressEvent(UserNotificationRootType));
-                                } else {
-                                    return Promise.resolve();
-                                }
-                            });
+                        .then(chatId => {
+                            const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
+                            if (login) {
+                                return ctx.messageClient.send({
+                                    ..._.cloneDeep(msg) as Notification,
+                                    login,
+                                }, addressEvent(UserNotificationRootType));
+                            } else {
+                                return Promise.resolve();
+                            }
+                        });
                     } else {
                         return ctx.messageClient.send(msg, addressEvent(NotificationRootType));
                     }
@@ -228,17 +243,17 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                     screenName: user.screenName,
                                 },
                             })
-                                .then(chatId => {
-                                    const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
-                                    if (login) {
-                                        return ctx.messageClient.send({
-                                            ..._.cloneDeep(msg) as Notification,
-                                            login,
-                                        }, addressEvent(UserNotificationRootType));
-                                    } else {
-                                        return Promise.resolve();
-                                    }
-                                });
+                            .then(chatId => {
+                                const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
+                                if (login) {
+                                    return ctx.messageClient.send({
+                                        ..._.cloneDeep(msg) as Notification,
+                                        login,
+                                    }, addressEvent(UserNotificationRootType));
+                                } else {
+                                    return Promise.resolve();
+                                }
+                            });
                         }));
                     }
 
