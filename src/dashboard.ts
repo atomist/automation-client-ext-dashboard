@@ -179,12 +179,12 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
 
                 if (!destinations || (destinations as Destination[]).length === 0) {
                     // Response message
-                    if (ctx.source.user_agent as any === "web") {
+                    if (ctx.source  && ctx.source.user_agent as any === "web") {
                         return ctx.messageClient.send({
                             ..._.cloneDeep(msg) as Notification,
                             login: (ctx.source as any).web.identity.sub,
                         }, addressEvent(UserNotificationRootType));
-                    } else if (ctx.source.user_agent === "slack") {
+                    } else if (ctx.source && ctx.source.user_agent === "slack") {
                         return ctx.graphClient.query({
                             query: LoginQuery,
                             variables: {
