@@ -42,23 +42,6 @@ import * as _ from "lodash";
  */
 const NotificationRootType = "Notification";
 
-/**
- * Root-tyoe for the user notifications
- */
-const UserNotificationRootType = "UserNotification";
-
-interface UserNotification {
-    ts: number;
-    key: string;
-    ttl: number;
-    post: string;
-
-    login: string;
-    contentType: "text/plain" | "application/x-atomist-slack+json";
-    body: string;
-    actions: Action[];
-}
-
 interface Notification {
     ts: number;
     key: string;
@@ -68,6 +51,10 @@ interface Notification {
     contentType: "text/plain" | "application/x-atomist-slack+json";
     body: string;
     actions: NotifactionAction[];
+
+    recipient?: {
+        address: string;
+    };
 }
 
 interface NotifactionAction {
@@ -182,8 +169,10 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     if (ctx.source  && ctx.source.user_agent as any === "web") {
                         return ctx.messageClient.send({
                             ..._.cloneDeep(msg) as Notification,
-                            login: (ctx.source as any).web.identity.sub,
-                        }, addressEvent(UserNotificationRootType));
+                            recipient: {
+                                address: `${ctx.teamId}-${(ctx.source as any).web.identity.sub}`,
+                            },
+                        }, addressEvent(NotificationRootType));
                     } else if (ctx.source && ctx.source.user_agent === "slack") {
                         return ctx.graphClient.query({
                             query: LoginQuery,
@@ -197,14 +186,21 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                             if (login) {
                                 return ctx.messageClient.send({
                                     ..._.cloneDeep(msg) as Notification,
-                                    login,
-                                }, addressEvent(UserNotificationRootType));
+                                    recipient: {
+                                        address: `${ctx.teamId}-${login}`,
+                                    },
+                                }, addressEvent(NotificationRootType));
                             } else {
                                 return Promise.resolve();
                             }
                         });
                     } else {
-                        return ctx.messageClient.send(msg, addressEvent(NotificationRootType));
+                        return ctx.messageClient.send({
+                            ..._.cloneDeep(msg) as Notification,
+                            recipient: {
+                                address: ctx.teamId,
+                            },
+                        }, addressEvent(NotificationRootType));
                     }
                 } else {
                     // Addressed message
@@ -229,7 +225,12 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     const messages: Array<Promise<void>> = [];
 
                     if (channel) {
-                        messages.push(ctx.messageClient.send(msg, addressEvent(NotificationRootType)));
+                        messages.push(ctx.messageClient.send({
+                            ..._.cloneDeep(msg) as Notification,
+                            recipient: {
+                                address: ctx.teamId,
+                            },
+                        }, addressEvent(NotificationRootType)));
                     }
 
                     if (users.length > 0) {
@@ -248,8 +249,10 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                 if (login) {
                                     return ctx.messageClient.send({
                                         ..._.cloneDeep(msg) as Notification,
-                                        login,
-                                    }, addressEvent(UserNotificationRootType));
+                                        recipient: {
+                                            address: `${ctx.teamId}-${login}`,
+                                        },
+                                    }, addressEvent(NotificationRootType));
                                 } else {
                                     return Promise.resolve();
                                 }
