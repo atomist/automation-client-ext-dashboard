@@ -8,8 +8,8 @@ This page details all runtime OSS dependencies of `@atomist/automation-client-ex
 
 | License | Count |
 |---------|-------|
-|Apache-2.0|2|
-|MIT|2|
+|[Apache-2.0](#apache-20)|2|
+|[MIT](#mit)|2|
 
 #### Apache-2.0
 Apache License 2.0 - [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
