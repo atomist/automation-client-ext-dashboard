@@ -8,7 +8,7 @@ This page details all runtime OSS dependencies of `@atomist/automation-client-ex
 
 | License | Count |
 |---------|-------|
-|[Apache-2.0](#apache-20)|2|
+|[Apache-2.0](#apache-20)|1|
 |[MIT](#mit)|2|
 
 #### Apache-2.0
@@ -16,7 +16,6 @@ Apache License 2.0 - [http://www.apache.org/licenses/LICENSE-2.0](http://www.apa
 
 | Name | Version | Publisher | Repository |
 |------|---------|-----------|------------|
-|`@atomist/automation-client-ext-dashboard`|`0.1.0`|Atomist, Inc.|[https://github.com/atomist/automation-client-ext-dashboard](https://github.com/atomist/automation-client-ext-dashboard)|
 |`@atomist/slack-messages`|`0.12.1`|Atomist|[https://github.com/atomist/slack-messages](https://github.com/atomist/slack-messages)|
 
 #### MIT
