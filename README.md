@@ -31,7 +31,7 @@ at [atomist-community.slack.com][slack].
 
 If you find a problem, please create an [issue][].
 
-[issue]: https://github.com/atomist/automation-client-ts/issues
+[issue]: https://github.com/atomist/automation-client-ext-dashboard/issues
 
 ## Development
 
