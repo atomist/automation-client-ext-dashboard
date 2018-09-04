@@ -170,7 +170,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                         return ctx.messageClient.send({
                             ..._.cloneDeep(msg) as Notification,
                             recipient: {
-                                address: `${ctx.teamId}-${(ctx.source as any).web.identity.sub}`,
+                                address: `${ctx.workspaceId}-${(ctx.source as any).web.identity.sub}`,
                             },
                         }, addressEvent(NotificationRootType));
                     } else if (ctx.source && ctx.source.user_agent === "slack") {
@@ -187,7 +187,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                 return ctx.messageClient.send({
                                     ..._.cloneDeep(msg) as Notification,
                                     recipient: {
-                                        address: `${ctx.teamId}-${login}`,
+                                        address: `${ctx.workspaceId}-${login}`,
                                     },
                                 }, addressEvent(NotificationRootType));
                             } else {
@@ -198,7 +198,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                         return ctx.messageClient.send({
                             ..._.cloneDeep(msg) as Notification,
                             recipient: {
-                                address: ctx.teamId,
+                                address: ctx.workspaceId,
                             },
                         }, addressEvent(NotificationRootType));
                     }
@@ -228,7 +228,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                         messages.push(ctx.messageClient.send({
                             ..._.cloneDeep(msg) as Notification,
                             recipient: {
-                                address: ctx.teamId,
+                                address: ctx.workspaceId,
                             },
                         }, addressEvent(NotificationRootType)));
                     }
@@ -250,7 +250,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                     return ctx.messageClient.send({
                                         ..._.cloneDeep(msg) as Notification,
                                         recipient: {
-                                            address: `${ctx.teamId}-${login}`,
+                                            address: `${ctx.workspaceId}-${login}`,
                                         },
                                     }, addressEvent(NotificationRootType));
                                 } else {
