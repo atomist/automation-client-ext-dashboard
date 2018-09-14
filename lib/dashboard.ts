@@ -18,9 +18,9 @@ import {
     AutomationContextAware,
     Configuration,
 } from "@atomist/automation-client";
-import { HandlerContext } from "@atomist/automation-client/HandlerContext";
-import { guid } from "@atomist/automation-client/internal/util/string";
-import { AutomationEventListenerSupport } from "@atomist/automation-client/server/AutomationEventListener";
+import { HandlerContext } from "@atomist/automation-client";
+import { guid } from "@atomist/automation-client";
+import { AutomationEventListenerSupport } from "@atomist/automation-client";
 import {
     addressEvent,
     CommandReferencingAction,
@@ -28,8 +28,7 @@ import {
     isSlackMessage,
     MessageOptions,
     SlackDestination,
-    SlackMessageClient,
-} from "@atomist/automation-client/spi/message/MessageClient";
+} from "@atomist/automation-client";
 import {
     Action,
     SlackMessage,
@@ -134,7 +133,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     .filter(a => a).map(a => {
                         const cra = a as any as CommandReferencingAction;
 
-                        const parameters = [];
+                        const parameters: any[] = [];
                         for (const key in cra.command.parameters) {
                             if (cra.command.parameters.hasOwnProperty(key)) {
                                 parameters.push({

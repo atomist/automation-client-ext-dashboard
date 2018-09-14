@@ -21,14 +21,14 @@
     "url": "https://github.com/atomist/automation-client-ext-dashboard/issues"
   },
   "dependencies": {
-    "@atomist/slack-messages": "1.0.1-master.20180830190736",
+    "@atomist/slack-messages": "^0.12.1",
     "lodash": "^4.17.10"
   },
   "peerDependencies": {
     "@atomist/automation-client": "*"
   },
   "devDependencies": {
-    "@atomist/automation-client": "1.0.0-master.20180913093131",
+    "@atomist/automation-client": "1.0.0-master.20180914103733",
     "@types/lodash": "^4.14.108",
     "@types/mocha": "^2.2.48",
     "@types/node": "^9.4.1",
@@ -49,23 +49,22 @@
     "test": "test"
   },
   "scripts": {
-    "build": "npm-run-all lint compile test",
-    "clean": "npm-run-all clean:js clean:build",
-    "clean:benchmark": "rimraf isolate-*-v8.log",
-    "clean:build": "rimraf *-v8.log profile.txt build",
+    "autotest": "supervisor --watch index.ts,lib,test --extensions ts --no-restart-on exit --quiet --exec npm -- test",
+    "build": "npm-run-all compile test lint doc",
+    "clean": "npm-run-all clean:compile clean:doc",
+    "clean:compile": "rimraf build git-info.json \"index.{d.ts,js*}\" \"{lib,test}/**/*.{d.ts,js*}\" lib/typings/types.ts",
     "clean:dist": "npm-run-all clean clean:npm",
-    "clean:js": "rimraf \"{src,test}/**/*.js\"",
+    "clean:doc": "rimraf doc",
     "clean:npm": "rimraf node_modules",
     "compile": "npm-run-all compile:ts",
     "compile:ts": "tsc --project .",
+    "doc": "typedoc --mode modules --ignoreCompilerErrors --exclude \"**/*.d.ts\" --out doc index.ts lib",
     "fmt": "tsfmt --replace",
-    "lint": "tslint --format verbose --project . --exclude \"{build,node_modules}/**\" \"**/*.ts\"",
+    "lint": "tslint --format verbose --project . --exclude \"{build,node_modules}/**\" --exclude \"**/*.d.ts\" \"**/*.ts\"",
     "lint:fix": "npm run lint -- --fix",
-    "test": "mocha --require espower-typescript/guess --exit \"test/{*.ts,!(api|benchmark|bitbucket-api)/**/*.ts}\"",
-    "test:one": "mocha --require espower-typescript/guess \"test/**/${TEST:-*.ts}\"",
-    "typedoc": "typedoc --mode modules --excludeExternals --out build/typedoc src",
-    "watch:compile": "tsc --project . --watch",
-    "watch": "supervisor --watch build --quiet --exec npm -- run start"
+    "test": "mocha --require espower-typescript/guess \"test/**/*.test.ts\"",
+    "test:one": "mocha --require espower-typescript/guess \"test/**/${TEST:-*.test.ts}\"",
+    "typedoc": "npm run doc"
   },
   "engines": {
     "node": "8.x.x",
