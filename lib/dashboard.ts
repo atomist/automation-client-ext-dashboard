@@ -15,16 +15,14 @@
  */
 
 import {
-    AutomationContextAware,
-    Configuration,
-} from "@atomist/automation-client";
-import { HandlerContext } from "@atomist/automation-client";
-import { guid } from "@atomist/automation-client";
-import { AutomationEventListenerSupport } from "@atomist/automation-client";
-import {
     addressEvent,
+    AutomationContextAware,
+    AutomationEventListenerSupport,
     CommandReferencingAction,
+    Configuration,
     Destination,
+    guid,
+    HandlerContext,
     isSlackMessage,
     MessageOptions,
     SlackDestination,
