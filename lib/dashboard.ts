@@ -276,3 +276,4 @@ export function configureDashboardNotifications(configuration: Configuration): P
     configuration.listeners.push(new DashboardAutomationEventListener(configuration.cluster.enabled));
     return Promise.resolve(configuration);
 }
+
