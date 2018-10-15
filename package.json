@@ -21,7 +21,7 @@
     "url": "https://github.com/atomist/automation-client-ext-dashboard/issues"
   },
   "dependencies": {
-    "@atomist/slack-messages": "1.0.1-master.20180830190736",
+    "@atomist/slack-messages": "1.0.0",
     "lodash": "^4.17.10"
   },
   "peerDependencies": {
