@@ -102,6 +102,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
         super();
     }
 
+    // tslint:disable-next-line:cyclomatic-complexity
     public messageSent(message: any,
                        destinations: Destination | Destination[],
                        options: MessageOptions,
@@ -165,7 +166,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     // Response message
                     if (ctx.source  && ctx.source.user_agent as any === "web") {
                         return ctx.messageClient.send({
-                            ..._.cloneDeep(msg) as Notification,
+                            ..._.cloneDeep(msg),
                             recipient: {
                                 address: `${ctx.workspaceId}-${(ctx.source as any).web.identity.sub}`,
                             },
@@ -182,7 +183,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                             const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
                             if (login) {
                                 return ctx.messageClient.send({
-                                    ..._.cloneDeep(msg) as Notification,
+                                    ..._.cloneDeep(msg),
                                     recipient: {
                                         address: `${ctx.workspaceId}-${login}`,
                                     },
@@ -193,7 +194,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                         });
                     } else {
                         return ctx.messageClient.send({
-                            ..._.cloneDeep(msg) as Notification,
+                            ..._.cloneDeep(msg),
                             recipient: {
                                 address: ctx.workspaceId,
                             },
@@ -223,7 +224,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
 
                     if (channel) {
                         messages.push(ctx.messageClient.send({
-                            ..._.cloneDeep(msg) as Notification,
+                            ..._.cloneDeep(msg),
                             recipient: {
                                 address: ctx.workspaceId,
                             },
@@ -245,7 +246,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                 const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
                                 if (login) {
                                     return ctx.messageClient.send({
-                                        ..._.cloneDeep(msg) as Notification,
+                                        ..._.cloneDeep(msg),
                                         recipient: {
                                             address: `${ctx.workspaceId}-${login}`,
                                         },
