@@ -243,7 +243,9 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                 },
                             })
                             .then(chatId => {
-                                const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
+                                const login = _.get(chatId,
+                                    "ChatTeam[0].members[0].person.gitHubId.login",
+                                    user.screenName);
                                 if (login) {
                                     return ctx.messageClient.send({
                                         ..._.cloneDeep(msg),
