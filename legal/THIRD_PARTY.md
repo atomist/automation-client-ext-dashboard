@@ -11,7 +11,7 @@ This page details all runtime OSS dependencies of `@atomist/automation-client-ex
 | License | Count |
 |---------|-------|
 |[AFLv2.1](#aflv21)|1|
-|[Apache-2.0](#apache-20)|16|
+|[Apache-2.0](#apache-20)|15|
 |[BSD-2-Clause](#bsd-2-clause)|8|
 |[BSD-3-Clause](#bsd-3-clause)|29|
 |[BSD](#bsd)|5|
@@ -36,7 +36,6 @@ Apache License 2.0 - [http://www.apache.org/licenses/LICENSE-2.0](http://www.apa
 | Name | Version | Publisher | Repository |
 |------|---------|-----------|------------|
 |`@atomist/slack-messages`|`1.1.0`|Atomist|[https://github.com/atomist/slack-messages](https://github.com/atomist/slack-messages)|
-|`@atomist/slack-messages`|`1.1.0-master.20181115202354`|Atomist|[https://github.com/atomist/slack-messages](https://github.com/atomist/slack-messages)|
 |`aws-sign2`|`0.7.0`|Mikeal Rogers|[https://github.com/mikeal/aws-sign](https://github.com/mikeal/aws-sign)|
 |`before-after-hook`|`1.3.1`|Gregor Martynus|[https://github.com/gr2m/before-after-hook](https://github.com/gr2m/before-after-hook)|
 |`bser`|`2.0.0`|Wez Furlong|[https://github.com/facebook/watchman](https://github.com/facebook/watchman)|
@@ -135,7 +134,7 @@ GNU General Public License v3.0 only - [http://www.gnu.org/licenses/gpl-3.0-stan
 
 | Name | Version | Publisher | Repository |
 |------|---------|-----------|------------|
-|`@atomist/automation-client`|`1.2.1-master.20190110143442`|Atomist|[https://github.com/atomist/automation-client](https://github.com/atomist/automation-client)|
+|`@atomist/automation-client`|`1.2.0`|Atomist|[https://github.com/atomist/automation-client](https://github.com/atomist/automation-client)|
 |`@atomist/microgrammar`|`1.0.1`|Atomist|[https://github.com/atomist/microgrammar](https://github.com/atomist/microgrammar)|
 |`@atomist/tree-path`|`1.0.1`|Atomist|[https://github.com/atomist/tree-path](https://github.com/atomist/tree-path)|
 
