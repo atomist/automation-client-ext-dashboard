@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/atomist/automation-client-ext-dashboard/compare/1.0.1...HEAD
+[Unreleased]: https://github.com/atomist/automation-client-ext-dashboard/compare/1.0.2...HEAD
+
+## [1.0.2][] - 2019-03-14
+
+[1.0.2]: https://github.com/atomist/automation-client-ext-dashboard/compare/1.0.1...1.0.2
 
 ## [1.0.1][] - 2018-11-09
 
