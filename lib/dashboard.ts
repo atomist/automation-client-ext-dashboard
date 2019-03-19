@@ -137,7 +137,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                             if (cra.command.parameters.hasOwnProperty(key)) {
                                 parameters.push({
                                     name: key,
-                                    value: cra.command.parameters[ key ] ? cra.command.parameters[ key ].toString() : undefined,
+                                    value: cra.command.parameters[key] ? cra.command.parameters[key].toString() : undefined,
                                 });
                             }
                         }
@@ -164,7 +164,8 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
 
                 if (!destinations || (destinations as Destination[]).length === 0) {
                     // Response message
-                    if (ctx.source  && ctx.source.user_agent as any === "web") {
+                    if (!!ctx.source && ctx.source.user_agent as any === "web"
+                        && !!(ctx.source as any).web && !!(ctx.source as any).web.identity) {
                         return ctx.messageClient.send({
                             ..._.cloneDeep(msg),
                             recipient: {
@@ -179,19 +180,19 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                 screenName: (ctx.source.slack.user as any).name,
                             },
                         })
-                        .then(chatId => {
-                            const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
-                            if (login) {
-                                return ctx.messageClient.send({
-                                    ..._.cloneDeep(msg),
-                                    recipient: {
-                                        address: `${ctx.workspaceId}-${login}`,
-                                    },
-                                }, addressEvent(NotificationRootType));
-                            } else {
-                                return Promise.resolve();
-                            }
-                        });
+                            .then(chatId => {
+                                const login = _.get(chatId, "ChatTeam[0].members[0].person.gitHubId.login");
+                                if (login) {
+                                    return ctx.messageClient.send({
+                                        ..._.cloneDeep(msg),
+                                        recipient: {
+                                            address: `${ctx.workspaceId}-${login}`,
+                                        },
+                                    }, addressEvent(NotificationRootType));
+                                } else {
+                                    return Promise.resolve();
+                                }
+                            });
                     } else {
                         return ctx.messageClient.send({
                             ..._.cloneDeep(msg),
@@ -208,7 +209,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     const users: Array<{ teamId: string, screenName: string }> = [];
                     let channel: boolean = false;
 
-                    const dest = Array.isArray(destinations) ? destinations : [ destinations ];
+                    const dest = Array.isArray(destinations) ? destinations : [destinations];
 
                     dest.forEach(d => {
                         const sd = d as SlackDestination;
@@ -242,21 +243,21 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                                     screenName: user.screenName,
                                 },
                             })
-                            .then(chatId => {
-                                const login = _.get(chatId,
-                                    "ChatTeam[0].members[0].person.gitHubId.login",
-                                    user.screenName);
-                                if (login) {
-                                    return ctx.messageClient.send({
-                                        ..._.cloneDeep(msg),
-                                        recipient: {
-                                            address: `${ctx.workspaceId}-${login}`,
-                                        },
-                                    }, addressEvent(NotificationRootType));
-                                } else {
-                                    return Promise.resolve();
-                                }
-                            });
+                                .then(chatId => {
+                                    const login = _.get(chatId,
+                                        "ChatTeam[0].members[0].person.gitHubId.login",
+                                        user.screenName);
+                                    if (login) {
+                                        return ctx.messageClient.send({
+                                            ..._.cloneDeep(msg),
+                                            recipient: {
+                                                address: `${ctx.workspaceId}-${login}`,
+                                            },
+                                        }, addressEvent(NotificationRootType));
+                                    } else {
+                                        return Promise.resolve();
+                                    }
+                                });
                         }));
                     }
 
