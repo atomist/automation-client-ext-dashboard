@@ -207,15 +207,11 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     // user-addressed will be send as UserNotification in the workspace
 
                     const users: Array<{ teamId: string, screenName: string }> = [];
-                    let channel: boolean = false;
 
                     const dest = Array.isArray(destinations) ? destinations : [destinations];
 
                     dest.forEach(d => {
                         const sd = d as SlackDestination;
-                        if (sd.channels && sd.channels.length > 0) {
-                            channel = true;
-                        }
                         if (sd.users) {
                             users.push(...sd.users.map(u => ({ teamId: sd.team, screenName: u })));
                         }
@@ -223,14 +219,12 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
 
                     const messages: Array<Promise<void>> = [];
 
-                    if (channel) {
-                        messages.push(ctx.messageClient.send({
-                            ..._.cloneDeep(msg),
-                            recipient: {
-                                address: ctx.workspaceId,
-                            },
-                        }, addressEvent(NotificationRootType)));
-                    }
+                    messages.push(ctx.messageClient.send({
+                        ..._.cloneDeep(msg),
+                        recipient: {
+                            address: ctx.workspaceId,
+                        },
+                    }, addressEvent(NotificationRootType)));
 
                     if (users.length > 0) {
                         messages.push(..._.uniq(users).map(user => {
