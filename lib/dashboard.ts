@@ -53,6 +53,8 @@ interface Notification {
     recipient?: {
         address: string;
     };
+
+    correlationId: string;
 }
 
 interface NotifactionAction {
@@ -161,6 +163,7 @@ export class DashboardAutomationEventListener extends AutomationEventListenerSup
                     body: JSON.stringify(slackMessage),
                     contentType: "application/x-atomist-slack+json",
                     actions,
+                    correlationId: ctx.correlationId,
                 };
 
                 if (!destinations || (destinations as Destination[]).length === 0) {
